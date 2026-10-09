@@ -3,8 +3,8 @@ import json
 import os
 
 DATA_DIR = "data"
-DATA_FILE = "data/karvands.json"
-REPORT_FILE = "data/report.json"
+DATA_FILE = os.path.join(DATA_DIR, "karvands.json")
+REPORT_FILE = os.path.join(DATA_DIR, "report.json")
 
 
 def load_data():
@@ -22,7 +22,9 @@ def load_data():
         with open(DATA_FILE, "r", encoding="utf-8") as file:
             data = json.load(file)
 
-        if not isinstance(data, dict) or not isinstance(data.get("karvands"), list):
+        if not isinstance(data, dict) or not isinstance(
+            data.get("karvands"), list
+        ):
             raise ValueError("Invalid data format.")
 
         return data
@@ -57,16 +59,23 @@ def add_karvand(data):
     while True:
         try:
             score = int(input("Skill score (0-100): "))
+
             if 0 <= score <= 100:
                 break
+
             print("Score must be between 0 and 100.")
+
         except ValueError:
             print("Please enter a valid number.")
 
-    if data["karvands"]:
-        new_id = max(k["id"] for k in data["karvands"]) + 1
-    else:
-        new_id = 1
+    existing_ids = [
+        item["id"]
+        for item in data["karvands"]
+        if isinstance(item.get("id"), int)
+        and not isinstance(item.get("id"), bool)
+    ]
+
+    new_id = max(existing_ids, default=0) + 1
 
     karvand = {
         "id": new_id,
@@ -100,55 +109,55 @@ def show_karvands(data):
         return
 
     for karvand in data["karvands"]:
-        print(f"\nID: {karvand['id']}")
-        print(f"Name: {karvand['name']}")
-        print(f"Email: {karvand['email']}")
-        print(f"City: {karvand['city']}")
-        print(f"Education: {karvand['education']['degree']}")
-        print(f"Field: {karvand['education']['field']}")
-        print("Skills:")
+        print_karvand(karvand)
 
-        for skill in karvand["skills"]:
-            print(
-                f"  - {skill['name']} | "
-                f"Level: {skill['level']} | "
-                f"Score: {skill['score']}"
-            )
+
+def print_karvand(karvand):
+    print(f"\nID: {karvand.get('id', 'N/A')}")
+    print(f"Name: {karvand.get('name', 'N/A')}")
+    print(f"Email: {karvand.get('email', 'N/A')}")
+    print(f"City: {karvand.get('city', 'N/A')}")
+
+    education = karvand.get("education", {})
+    print(f"Education: {education.get('degree', 'N/A')}")
+    print(f"Field: {education.get('field', 'N/A')}")
+
+    print("Skills:")
+
+    for skill in karvand.get("skills", []):
+        print(
+            f"  - {skill.get('name', 'N/A')} | "
+            f"Level: {skill.get('level', 'N/A')} | "
+            f"Score: {skill.get('score', 'N/A')}"
+        )
 
 
 def search_karvand(data):
     print("\n--- Search Karvand ---")
-    keyword = input("Enter name or email: ").strip().lower()
+    keyword = input("Enter ID, name, or email: ").strip()
 
     if not keyword:
-        print("Search keyword cannot be empty.")
+        print("Search input cannot be empty.")
         return
 
     found = False
 
     for karvand in data["karvands"]:
+        karvand_id = str(karvand.get("id", ""))
+        name = str(karvand.get("name", "")).lower()
+        email = str(karvand.get("email", "")).lower()
+        search_value = keyword.lower()
+
         if (
-            keyword in karvand["name"].lower()
-            or keyword in karvand["email"].lower()
+            keyword == karvand_id
+            or search_value in name
+            or search_value in email
         ):
-            print(f"\nID: {karvand['id']}")
-            print(f"Name: {karvand['name']}")
-            print(f"Email: {karvand['email']}")
-            print(f"City: {karvand['city']}")
-            print(f"Education: {karvand['education']['degree']}")
-            print(f"Field: {karvand['education']['field']}")
-
-            for skill in karvand["skills"]:
-                print(
-                    f"Skill: {skill['name']} | "
-                    f"Level: {skill['level']} | "
-                    f"Score: {skill['score']}"
-                )
-
+            print_karvand(karvand)
             found = True
 
     if not found:
-        print("No karvand found.")
+        print("Karvand not found.")
 
 
 def delete_karvand(data):
@@ -161,7 +170,7 @@ def delete_karvand(data):
         return
 
     for karvand in data["karvands"]:
-        if karvand["id"] == karvand_id:
+        if karvand.get("id") == karvand_id:
             data["karvands"].remove(karvand)
             save_data(data)
             print("Karvand deleted successfully.")
@@ -182,7 +191,7 @@ def edit_karvand(data):
     karvand = None
 
     for item in data["karvands"]:
-        if item["id"] == karvand_id:
+        if item.get("id") == karvand_id:
             karvand = item
             break
 
@@ -200,7 +209,7 @@ def edit_karvand(data):
     print("7. Skill level")
     print("8. Skill score")
 
-    choice = input("Choose an option: ")
+    choice = input("Choose an option: ").strip()
 
     if choice == "1":
         karvand["name"] = input("Enter new name: ").strip()
@@ -212,22 +221,24 @@ def edit_karvand(data):
         karvand["city"] = input("Enter new city: ").strip()
 
     elif choice == "4":
-        karvand["education"]["degree"] = input(
+        karvand.setdefault("education", {})["degree"] = input(
             "Enter new education degree: "
         ).strip()
 
     elif choice == "5":
-        karvand["education"]["field"] = input(
+        karvand.setdefault("education", {})["field"] = input(
             "Enter new education field: "
         ).strip()
 
     elif choice in ("6", "7", "8"):
-        if not karvand["skills"]:
+        skills = karvand.setdefault("skills", [])
+
+        if not skills:
             print("No skills found for this karvand.")
             return
 
-        for index, skill in enumerate(karvand["skills"], start=1):
-            print(f"{index}. {skill['name']}")
+        for index, skill in enumerate(skills, start=1):
+            print(f"{index}. {skill.get('name', 'N/A')}")
 
         try:
             skill_number = int(input("Select skill number: "))
@@ -235,11 +246,11 @@ def edit_karvand(data):
             print("Please enter a valid number.")
             return
 
-        if not 1 <= skill_number <= len(karvand["skills"]):
+        if not 1 <= skill_number <= len(skills):
             print("Invalid skill number.")
             return
 
-        skill = karvand["skills"][skill_number - 1]
+        skill = skills[skill_number - 1]
 
         if choice == "6":
             skill["name"] = input("Enter new skill name: ").strip()
@@ -250,7 +261,9 @@ def edit_karvand(data):
         elif choice == "8":
             while True:
                 try:
-                    score = int(input("Enter new skill score (0-100): "))
+                    score = int(
+                        input("Enter new skill score (0-100): ")
+                    )
 
                     if 0 <= score <= 100:
                         skill["score"] = score
@@ -273,15 +286,11 @@ def generate_report(data):
     print("\n--- Summary Report ---")
 
     karvands = data["karvands"]
-    total_karvands = len(karvands)
-
     all_skills = [
         skill
         for karvand in karvands
         for skill in karvand.get("skills", [])
     ]
-
-    total_skills = len(all_skills)
 
     scores = [
         skill["score"]
@@ -290,15 +299,13 @@ def generate_report(data):
         and not isinstance(skill.get("score"), bool)
     ]
 
-    average_score = round(sum(scores) / len(scores), 2) if scores else 0
-
     cities = sorted({
         karvand.get("city", "")
         for karvand in karvands
         if karvand.get("city", "")
     })
 
-    skill_names = sorted({
+    unique_skills = sorted({
         skill.get("name", "")
         for skill in all_skills
         if skill.get("name", "")
@@ -308,22 +315,25 @@ def generate_report(data):
         "bootcamp": data.get("bootcamp", {}).get(
             "name", "Karvand Bootcamp"
         ),
-        "total_karvands": total_karvands,
-        "total_skills": total_skills,
-        "average_skill_score": average_score,
+        "total_karvands": len(karvands),
+        "total_skills": len(all_skills),
+        "average_skill_score": (
+            round(sum(scores) / len(scores), 2) if scores else 0
+        ),
         "cities": cities,
-        "skill_names": skill_names
+        "unique_skills": unique_skills
     }
 
     with open(REPORT_FILE, "w", encoding="utf-8") as file:
         json.dump(report, file, ensure_ascii=False, indent=4)
 
-    print(f"Total karvands: {total_karvands}")
-    print(f"Total skills: {total_skills}")
-    print(f"Average skill score: {average_score}")
+    print(f"Total karvands: {report['total_karvands']}")
+    print(f"Total skills: {report['total_skills']}")
+    print(f"Average skill score: {report['average_skill_score']}")
     print(f"Cities: {', '.join(cities) if cities else 'None'}")
     print(
-        f"Skills: {', '.join(skill_names) if skill_names else 'None'}"
+        f"Unique skills: "
+        f"{', '.join(unique_skills) if unique_skills else 'None'}"
     )
     print(f"Report saved to {REPORT_FILE}")
 
@@ -344,23 +354,30 @@ def main():
 
     while True:
         show_menu()
-        choice = input("Choose an option: ")
+        choice = input("Choose an option: ").strip()
 
         if choice == "1":
             add_karvand(data)
+
         elif choice == "2":
             show_karvands(data)
+
         elif choice == "3":
             search_karvand(data)
+
         elif choice == "4":
             delete_karvand(data)
+
         elif choice == "5":
             edit_karvand(data)
+
         elif choice == "6":
             generate_report(data)
+
         elif choice == "7":
             print("Goodbye!")
             break
+
         else:
             print("Invalid choice. Please try again.")
 
