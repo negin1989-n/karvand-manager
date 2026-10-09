@@ -5,52 +5,52 @@
     "karvands": [
         {
             "id": 1,
-            "name": "negin",
+            "name": "negini",
             "email": "negin@",
             "city": "tehran",
             "education": {
-                "degree": "21",
-                "field": "12"
+                "degree": "lisans",
+                "field": "electronic"
             },
             "skills": [
                 {
-                    "name": "nnnn",
-                    "level": "132",
-                    "score": 99
-                }
-            ]
-        },
-        {
-            "id": 2,
-            "name": "narges",
-            "email": "n@sd",
-            "city": "karaj",
-            "education": {
-                "degree": "43",
-                "field": "42"
-            },
-            "skills": [
-                {
-                    "name": "gggg",
-                    "level": "78",
+                    "name": "programing",
+                    "level": "motevaset",
                     "score": 70
                 }
             ]
         },
         {
-            "id": 3,
-            "name": "git status -sb",
-            "email": "r@we",
-            "city": "fars",
+            "id": 2,
+            "name": "sara",
+            "email": "sara@",
+            "city": "karaj",
             "education": {
-                "degree": "56",
-                "field": "23"
+                "degree": "lisans",
+                "field": "it"
             },
             "skills": [
                 {
-                    "name": "nh",
-                    "level": "56",
-                    "score": 63
+                    "name": "programing",
+                    "level": "aly",
+                    "score": 98
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "nazanin",
+            "email": "nazi@",
+            "city": "shiraz",
+            "education": {
+                "degree": "diplom",
+                "field": "riyazi"
+            },
+            "skills": [
+                {
+                    "name": "fani",
+                    "level": "aly",
+                    "score": 99
                 }
             ]
         }

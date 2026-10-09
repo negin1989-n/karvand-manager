@@ -1,0 +1,15 @@
+{
+    "bootcamp": "Karvand Bootcamp",
+    "total_karvands": 3,
+    "total_skills": 3,
+    "average_skill_score": 89.0,
+    "cities": [
+        "karaj",
+        "shiraz",
+        "tehran"
+    ],
+    "skill_names": [
+        "fani",
+        "programing"
+    ]
+}
